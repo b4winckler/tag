@@ -1,43 +1,43 @@
 module Main where
 
-import qualified Sound.TagLib as TagLib
-import Data.Maybe
-import Control.Monad
+import Control.Applicative ((<$>), (<*>))
+import Control.Monad (forM, (>=>))
+import Data.Maybe (maybe)
 import System.Environment (getArgs)
+import qualified Sound.TagLib as TagLib
+
+data Info = Info {
+    album   :: String
+  , artist  :: String
+  , comment :: String
+  , genre   :: String
+  , title   :: String
+  , track   :: Integer
+  , year    :: Integer
+  } deriving (Show)
 
 main = do
   args <- getArgs
-  mapM showFile args
+  mapM (readInfo >=> print) args
 
-withMaybe :: (Maybe j) -> (j -> IO ()) -> IO ()
-withMaybe m f = maybe (return ()) f m
+readInfo :: String -> IO (Maybe Info)
+readInfo fname = do
+  tagFile <- TagLib.open fname
+  tag     <- onJust TagLib.tag tagFile
+  onJust (parseInfo >=> return . Just) tag
+-- readInfo fname =
+--   TagLib.open fname >>= onJust TagLib.tag
+--   >>= onJust (parseInfo >=> return . Just)
 
-showFile filename = do
-  t <- TagLib.open filename
-  withMaybe t showTagFile
+parseInfo :: TagLib.Tag -> IO Info
+parseInfo tag = Info
+  <$> TagLib.album tag
+  <*> TagLib.artist tag
+  <*> TagLib.comment tag
+  <*> TagLib.genre tag
+  <*> TagLib.title tag
+  <*> TagLib.track tag
+  <*> TagLib.year tag
 
-showTagFile :: TagLib.TagFile -> IO ()
-showTagFile tagFile = do
-  t <- TagLib.tag tagFile
-  withMaybe t showTag
-  p <- TagLib.audioProperties tagFile
-  withMaybe p showAudioProperties
-
-showTag :: TagLib.Tag -> IO ()
-showTag tag = do
-  artist <- TagLib.artist tag
-  album <- TagLib.album tag
-  title <- TagLib.title tag
-  comment <- TagLib.comment tag
-  year <- TagLib.year tag
-  track <- TagLib.track tag
-  print (artist, album, title, year, track)
-
-showAudioProperties :: TagLib.AudioProperties -> IO ()
-showAudioProperties props = do
-  bitrate <- TagLib.bitRate props
-  length <- TagLib.duration props
-  samplerate <- TagLib.sampleRate props
-  channels <- TagLib.channels props
-  print (bitrate, length, channels, samplerate)
-
+onJust :: Monad m => (a -> m (Maybe b)) -> Maybe a -> m (Maybe b)
+onJust f a = maybe (return Nothing) f a
