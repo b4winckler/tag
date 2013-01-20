@@ -1,7 +1,7 @@
-name:               thorn
+name:               tag
 version:            0.1.0.0
 synopsis:           Batch sound file editor
-homepage:           github.com/b4winckler/thorn
+homepage:           github.com/b4winckler/tag
 license:            BSD3
 license-file:       LICENSE
 author:             Björn Winckler
@@ -10,7 +10,7 @@ category:           Sound
 build-type:         Simple
 cabal-version:      >=1.8
 
-executable thorn
+executable tag
   main-is:          Main.hs
   hs-source-dirs:   src
   build-depends:    base == 4.6.*,

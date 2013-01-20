@@ -29,7 +29,7 @@ data Info = Info {
   }
 
 
-main = execParser opts >>= thorn
+main = execParser opts >>= run
   where
     opts = info (helper <*> parseArgs)
                 (fullDesc <> progDesc "Edit audio file tags")
@@ -45,8 +45,8 @@ parseArgs = Args
 
 maybeStrOption m = option (reader (return . Just) <> value Nothing <> m)
 
-thorn :: Args -> IO ()
-thorn args = forM_ (optFiles args) $ \fname -> do
+run :: Args -> IO ()
+run args = forM_ (optFiles args) $ \fname -> do
   mfile <- TagLib.open fname
   mtag  <- maybe (putStrLn ("open failed: " ++ fname) >> return Nothing)
                  TagLib.tag mfile
