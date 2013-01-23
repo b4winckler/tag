@@ -2,10 +2,10 @@ module Main where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (forM_, when)
-import Data.Monoid
-import Data.Maybe (catMaybes, maybe, fromJust)
-import Options.Applicative
+import Data.Maybe (isJust, fromJust, maybe)
+import Data.Monoid ((<>))
 
+import qualified Options.Applicative as O
 import qualified Sound.TagLib as TagLib
 
 data Args = Args {
@@ -14,6 +14,8 @@ data Args = Args {
   , optComment :: Maybe String
   , optGenre   :: Maybe String
   , optTitle   :: Maybe String
+  , optTrack   :: Maybe Integer
+  , optYear    :: Maybe Integer
   , optVerbose :: Bool
   , optPaths   :: [FilePath]
   }
@@ -29,22 +31,32 @@ data Info = Info {
   }
 
 
-main = execParser opts >>= run
+main :: IO ()
+main = O.execParser opts >>= run
   where
-    opts = info (helper <*> parseArgs)
-                (fullDesc <> progDesc "Edit audio file tags")
+    opts = O.info (O.helper <*> parseArgs)
+                  (O.fullDesc <> O.progDesc "Edit audio file tags")
 
-parseArgs :: Parser Args
+parseArgs :: O.Parser Args
 parseArgs = Args
-  <$> maybeStrOption (long "album"   <> metavar "ALBUM"   <> help "Set album")
-  <*> maybeStrOption (long "artist"  <> metavar "ARTIST"  <> help "Set artist")
-  <*> maybeStrOption (long "comment" <> metavar "COMMENT" <> help "Set comment")
-  <*> maybeStrOption (long "genre"   <> metavar "GENRE"   <> help "Set genre")
-  <*> maybeStrOption (long "title"   <> metavar "TITLE"   <> help "Set title")
-  <*> switch (long "verbose" <> help "Verbose output")
-  <*> arguments1 str (metavar "FILES")
-
-maybeStrOption m = option (reader (return . Just) <> value Nothing <> m)
+  <$> parse O.str "album" "STR"
+  <*> parse O.str "artist" "STR"
+  <*> parse O.str "comment" "STR"
+  <*> parse O.str "genre" "STR"
+  <*> parse O.str "title" "STR"
+  <*> parse O.auto "track" "NUM"
+  <*> parse O.auto "year" "NUM"
+  <*> O.switch (O.long "verbose" <> O.help "Verbose output")
+  <*> O.arguments1 O.str (O.metavar "FILES")
+  where
+    -- To parse a (Just a) value is complicated by the fact that we have to
+    -- specify different readers for String and (Read a) values so we pass the
+    -- reader as the first parameter.
+    parse r name meta = O.option $ O.reader (fmap Just . r)
+                                <> O.value Nothing
+                                <> O.long name
+                                <> O.metavar meta
+                                <> O.help ("Set " ++ name)
 
 run :: Args -> IO ()
 run args = forM_ (optPaths args) $ \fname -> do
@@ -52,27 +64,33 @@ run args = forM_ (optPaths args) $ \fname -> do
   mtag  <- maybe (return Nothing) TagLib.tag mfile
   case mtag of
     Nothing  -> putStrLn ("missing tag: " ++ fname) >> return ()
-    Just tag -> handle mfile tag args
+    Just tag -> handleTagFile (fromJust mfile) tag args
 
-handle file tag args = do
+handleTagFile :: TagLib.TagFile -> TagLib.Tag -> Args -> IO ()
+handleTagFile file tag args = do
   when (optVerbose args || not (anySetters args)) $ parseInfo tag >>= print
   when (anySetters args) $ do
     modifyTag tag args
-    TagLib.save (fromJust file)
+    TagLib.save file
     return ()
 
+modifyTag :: TagLib.Tag -> Args -> IO ()
 modifyTag tag args = do
   withJust (optAlbum   args) (TagLib.setAlbum   tag)
   withJust (optArtist  args) (TagLib.setArtist  tag)
   withJust (optComment args) (TagLib.setComment tag)
   withJust (optGenre   args) (TagLib.setGenre   tag)
   withJust (optTitle   args) (TagLib.setTitle   tag)
+  withJust (optTrack   args) (TagLib.setTrack   tag)
+  withJust (optYear    args) (TagLib.setYear    tag)
   where
     withJust m a = maybe (return ()) a m
 
 anySetters :: Args -> Bool
-anySetters args = not $ null $ catMaybes $
-  [optAlbum, optArtist, optComment, optGenre, optTitle] <*> [args]
+anySetters args = or $ (sopt ++ iopt) <*> [args]
+  where
+    sopt = map (isJust .) [optAlbum, optArtist, optComment, optGenre, optTitle]
+    iopt = map (isJust .) [optTrack, optYear]
 
 parseInfo :: TagLib.Tag -> IO Info
 parseInfo tag = Info
@@ -97,68 +115,3 @@ instance Show Info where
     where
       line _ "" = ""
       line l s  = l ++ s ++ "\n"
-
-{-
-run2 :: Args -> IO ()
-run2 args = do
-  let allPaths = optPaths args
-  (good, badPaths) <- partitionFiles allPaths <$> mapM readInfo allPaths
-
-  let nbad = length badPaths
-  when (optVerbose args && nbad > 0) $ do
-    putStrLn $ "Ignoring " ++ show nbad ++ " files:\n"
-    forM_ badPaths $ putStrLn
-    putStrLn ""
-
-  let ngood = length good
-  when (optVerbose args && ngood > 0) $ do
-    putStrLn "Original tags:\n"
-    forM_ (snd $ unzip good) $ putStrLn . show
-    putStrLn ""
-
-  when (anySetters args) $ do
-    let modified = tag args good
-    putStrLn $ "Modified tags:\n"
-    forM_ (snd $ unzip modified) $ putStrLn . show
-    putStrLn ""
-
-
-readInfo :: FilePath -> IO (Maybe Info)
-readInfo path = do
-  mfile <- TagLib.open path
-  mtag  <- maybe (return Nothing) TagLib.tag mfile
-  maybe (return Nothing) (parseInfo >=> return . Just) mtag
-
-readInfo' :: FilePath -> IO (Maybe Info)
-readInfo' path = do
-  mf <- TagLib.open path
-  case mf of
-    Nothing -> return Nothing
-    Just tagFile -> do
-      mt <- TagLib.tag tagFile
-      case mt of
-        Nothing -> return Nothing
-        Just tag -> do
-          info <- parseInfo tag
-          return $ Just info
-
-tag :: Args -> [(FilePath, Info)] -> [(FilePath, Info)]
-tag args = map modify
-  where
-    modify (path, info) = (path, info {
-        album   = maybe (album info)   id (optAlbum   args)
-      , artist  = maybe (artist info)  id (optArtist  args)
-      , comment = maybe (comment info) id (optComment args)
-      , genre   = maybe (genre info)   id (optGenre   args)
-      , title   = maybe (title info)   id (optTitle   args)
-      })
-
-
--- Collect files which have tags and separate them from the files without.
-partitionFiles :: [FilePath] -> [Maybe Info] -> ([(FilePath, Info)], [FilePath])
-partitionFiles paths infos = ( map (\(a,b) -> (a, fromJust b)) good
-                             , map fst bad )
-  where
-    (good, bad) = partition (isJust . snd) (zip paths infos)
-
--}
