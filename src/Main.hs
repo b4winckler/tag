@@ -6,7 +6,7 @@ import Data.Maybe (isJust, fromJust, maybe)
 import Data.Monoid ((<>))
 
 import qualified Options.Applicative as O
-import qualified Sound.TagLib as TagLib
+import qualified Sound.TagLib as T
 
 data Args = Args {
     optAlbum   :: Maybe String
@@ -61,29 +61,29 @@ parseArgs = Args
 
 run :: Args -> IO ()
 run args = forM_ (optPaths args) $ \fname -> do
-  mfile <- TagLib.open fname
-  mtag  <- maybe (return Nothing) TagLib.tag mfile
+  mfile <- T.open fname
+  mtag  <- maybe (return Nothing) T.tag mfile
   case mtag of
     Nothing  -> putStrLn ("missing tag: " ++ fname) >> return ()
     Just tag -> handleTagFile (fromJust mfile) tag args
 
-handleTagFile :: TagLib.TagFile -> TagLib.Tag -> Args -> IO ()
+handleTagFile :: T.TagFile -> T.Tag -> Args -> IO ()
 handleTagFile file tag args = do
   when (optVerbose args || not (anySetters args)) $ parseInfo tag >>= print
   when (anySetters args) $ do
     modifyTag tag args
-    TagLib.save file
+    T.save file
     return ()
 
-modifyTag :: TagLib.Tag -> Args -> IO ()
+modifyTag :: T.Tag -> Args -> IO ()
 modifyTag tag args = do
-  withJust (optAlbum   args) (TagLib.setAlbum   tag)
-  withJust (optArtist  args) (TagLib.setArtist  tag)
-  withJust (optComment args) (TagLib.setComment tag)
-  withJust (optGenre   args) (TagLib.setGenre   tag)
-  withJust (optTitle   args) (TagLib.setTitle   tag)
-  withJust (optTrack   args) (TagLib.setTrack   tag)
-  withJust (optYear    args) (TagLib.setYear    tag)
+  withJust (optAlbum   args) (T.setAlbum   tag)
+  withJust (optArtist  args) (T.setArtist  tag)
+  withJust (optComment args) (T.setComment tag)
+  withJust (optGenre   args) (T.setGenre   tag)
+  withJust (optTitle   args) (T.setTitle   tag)
+  withJust (optTrack   args) (T.setTrack   tag)
+  withJust (optYear    args) (T.setYear    tag)
   where
     withJust m a = maybe (return ()) a m
 
@@ -93,15 +93,15 @@ anySetters args = or $ (sopt ++ iopt) <*> [args]
     sopt = map (isJust .) [optAlbum, optArtist, optComment, optGenre, optTitle]
     iopt = map (isJust .) [optTrack, optYear]
 
-parseInfo :: TagLib.Tag -> IO Info
+parseInfo :: T.Tag -> IO Info
 parseInfo tag = Info
-  <$> TagLib.album tag
-  <*> TagLib.artist tag
-  <*> TagLib.comment tag
-  <*> TagLib.genre tag
-  <*> TagLib.title tag
-  <*> TagLib.track tag
-  <*> TagLib.year tag
+  <$> T.album tag
+  <*> T.artist tag
+  <*> T.comment tag
+  <*> T.genre tag
+  <*> T.title tag
+  <*> T.track tag
+  <*> T.year tag
 
 instance Show Info where
   show (Info alb art cmt gen tle trk yr) = concat [
