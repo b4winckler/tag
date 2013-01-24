@@ -30,12 +30,12 @@ data Info = Info {
   , year    :: Integer
   }
 
-
 main :: IO ()
-main = O.execParser opts >>= run
-  where
-    opts = O.info (O.helper <*> parseArgs)
-                  (O.fullDesc <> O.progDesc "Edit audio file tags")
+main = do
+  opt <- O.execParser $ O.info (O.helper <*> parseArgs) $ O.fullDesc
+           <> O.header "tag v0.1 - Command line editing of audio file tags"
+  run opt
+
 
 parseArgs :: O.Parser Args
 parseArgs = Args
