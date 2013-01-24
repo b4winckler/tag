@@ -52,10 +52,16 @@ e.g. as in *Mozart's Requiem*,  then it needs to be escaped like this:
 
     $ tag * --album 'Mozart'\''s Requiem'
 
-Recursively find all flac files and summarize what genres they are:
+Recursively set genre of all songs in folder `Classical` (note that `tag` will
+ignore folders and any non-music files, such as cover art etc.):
 
-    $ find . -type f -name '*.flac' -print0 | xargs -0 tag | grep 'genre:' | \
-    > sed -e 's/genre://' | sort | uniq -c
+    $ find Classical -exec tag --genre Classical {} +
+
+Recursively find artist for all songs under current folder, then print how many
+songs each artist has in decreasing order (this may take a while if you have a
+large library):
+
+    $ find . -exec tag {} + | grep 'artist:' | sed -e 's/artist://' | sort | uniq -c | sort -bnr
 
 
 ## Known bugs
