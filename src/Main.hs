@@ -39,24 +39,25 @@ main = O.execParser opts >>= run
 
 parseArgs :: O.Parser Args
 parseArgs = Args
-  <$> parse O.str "album" "STR"
-  <*> parse O.str "artist" "STR"
-  <*> parse O.str "comment" "STR"
-  <*> parse O.str "genre" "STR"
-  <*> parse O.str "title" "STR"
-  <*> parse O.auto "track" "NUM"
-  <*> parse O.auto "year" "NUM"
+  <$> parse O.str "album" "STR" 'a'
+  <*> parse O.str "artist" "STR" 'b'
+  <*> parse O.str "comment" "STR" 'c'
+  <*> parse O.str "genre" "STR" 'g'
+  <*> parse O.str "title" "STR" 't'
+  <*> parse O.auto "track" "NUM" 'n'
+  <*> parse O.auto "year" "NUM" 'y'
   <*> O.switch (O.long "verbose" <> O.help "Verbose output")
   <*> O.arguments1 O.str (O.metavar "FILES")
   where
     -- To parse a (Just a) value is complicated by the fact that we have to
     -- specify different readers for String and (Read a) values so we pass the
     -- reader as the first parameter.
-    parse r name meta = O.option $ O.reader (fmap Just . r)
-                                <> O.value Nothing
-                                <> O.long name
-                                <> O.metavar meta
-                                <> O.help ("Set " ++ name)
+    parse r name meta short = O.option $ O.reader (fmap Just . r)
+                                      <> O.value Nothing
+                                      <> O.long name
+                                      <> O.short short
+                                      <> O.metavar meta
+                                      <> O.help ("Set " ++ name)
 
 run :: Args -> IO ()
 run args = forM_ (optPaths args) $ \fname -> do
