@@ -1,7 +1,7 @@
 # Tag
 
 `tag` is a *simple* command line audio tag editor.  It can view and modify tags
-for any tag formats recognized by [TagLib](http://taglib.github.com/) (e.g.
+for any tag format recognized by [TagLib](http://taglib.github.com/) (e.g.
 ID3v1 and ID3v2 for MP3 files, Ogg Vorbis comments and ID3 tags and Vorbis
 comments in FLAC, MPC, Speex, WavPack TrueAudio, WAV, AIFF, MP4 and ASF files).
 
@@ -70,7 +70,7 @@ It is not possible to:
 ## Installation
 
 Assuming you have the [Haskell Platform](http://www.haskell.org/platform/)
-installed:
+and [TagLib](http://taglib.github.com/) installed:
 
     $ cabal install
 
