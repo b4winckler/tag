@@ -39,20 +39,22 @@ main = do
 
 parseArgs :: O.Parser Args
 parseArgs = Args
-  <$> parse O.str "album" "STR" 'a'
-  <*> parse O.str "artist" "STR" 'b'
-  <*> parse O.str "comment" "STR" 'c'
-  <*> parse O.str "genre" "STR" 'g'
-  <*> parse O.str "title" "STR" 't'
-  <*> parse O.auto "track" "NUM" 'n'
-  <*> parse O.auto "year" "NUM" 'y'
+  <$> parseStr 'a' "album"
+  <*> parseStr 'b' "artist"
+  <*> parseStr 'c' "comment"
+  <*> parseStr 'g' "genre"
+  <*> parseStr 't' "title"
+  <*> parseNum 'n' "track"
+  <*> parseNum 'y' "year"
   <*> O.switch (O.long "verbose" <> O.help "Verbose output")
   <*> O.arguments1 O.str (O.metavar "FILES")
   where
     -- To parse a (Just a) value is complicated by the fact that we have to
     -- specify different readers for String and (Read a) values so we pass the
     -- reader as the first parameter.
-    parse r name meta short = O.option $ O.reader (fmap Just . r)
+    parseStr = parse O.str "STR"
+    parseNum = parse O.auto "NUM"
+    parse r meta short name = O.option $ O.reader (fmap Just . r)
                                       <> O.value Nothing
                                       <> O.long name
                                       <> O.short short
