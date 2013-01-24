@@ -48,7 +48,7 @@ will be ignored):
 
 A tag with spaces or other characters that will be interpreted by the shell
 need to be protected by single quotes.  If the tag contains a single quote,
-e.g. as in "Mozart's Requiem",  then it needs to be escaped like this:
+e.g. as in *Mozart's Requiem*,  then it needs to be escaped like this:
 
     $ tag * --album 'Mozart'\''s Requiem'
 
@@ -64,5 +64,13 @@ It is not possible to:
 
 *   edit any other tags than the ones output by `tag filename`
 *   delete tags or specify empty tags (e.g. it is only possible to clear the
-    comment tag by `tag file --comment ' '`
+    comment tag by `tag file --comment ' '`)
 *   add tags to a file without tags
+
+## Installation
+
+Assuming you have the [Haskell Platform](http://www.haskell.org/platform/)
+installed:
+
+    $ cabal install
+
