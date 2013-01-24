@@ -64,7 +64,8 @@ run args = forM_ (optPaths args) $ \fname -> do
   mfile <- T.open fname
   mtag  <- maybe (return Nothing) T.tag mfile
   case mtag of
-    Nothing  -> putStrLn ("missing tag: " ++ fname) >> return ()
+    Nothing  -> if optVerbose args then putStrLn ("missing tag: " ++ fname)
+                                   else return ()
     Just tag -> handleTagFile (fromJust mfile) tag args
 
 handleTagFile :: T.TagFile -> T.Tag -> Args -> IO ()
