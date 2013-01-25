@@ -1,0 +1,8 @@
+-   Instead of setting tags to fixed string, allow substitutions using regular
+    expressions (think: sed command on title tag).  Can this not already be
+    done with command line? Probably, but clumsy (tag file --artist `tag file |
+    grep "artist:" | sed -e 's...'`)
+
+-   Ability to delete tag
+
+-   Ability to edit any textual tag (e.g. Album Artist, Composer, ...)
