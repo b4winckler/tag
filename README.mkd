@@ -21,7 +21,7 @@ By default `tag` will print all audio tags it recognizes
 If you specify more than one input file, then the tag for each file will be
 printed one at a time.
 
-The second operation of `tag` is to set audio tags
+The second operation of `tag` is to modify audio tags
 
     $ tag file.flac --genre 'Stoner Rock' --year 2000
     $ tag file.flac
@@ -41,14 +41,14 @@ See `tag --help` for a list of supported options.
 
 ## Examples
 
-Set album name of all files in current folder (note that file without a tag
+Set album name of all files in current folder (note that a file without a tag
 will be ignored):
 
     $ tag * --album Requiem
 
 A tag with spaces or other characters that will be interpreted by the shell
 need to be protected by single quotes.  If the tag contains a single quote,
-e.g. as in *Mozart's Requiem*,  then it needs to be escaped like this:
+e.g. as in *Mozart's Requiem*,  then it needs to be escaped like this (assuming you are using the bash shell):
 
     $ tag * --album 'Mozart'\''s Requiem'
 
@@ -68,10 +68,10 @@ large library):
 
 It is not possible to:
 
-*   edit any other tags than the ones output by `tag filename`
+*   edit any other tags than the ones output by `tag filename`,
 *   delete tags or specify empty tags (e.g. it is only possible to clear the
-    comment tag by `tag file --comment ' '`)
-*   add tags to a file without tags
+    comment tag by `tag file --comment ' '`),
+*   add tags to a file without tags.
 
 ## Installation
 
