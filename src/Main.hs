@@ -68,11 +68,12 @@ run args = forM_ (optPaths args) $ \fname -> do
   case mtag of
     Nothing  -> if optVerbose args then putStrLn ("missing tag: " ++ fname)
                                    else return ()
-    Just tag -> handleTagFile (fromJust mfile) tag args
+    Just tag -> handleTagFile fname (fromJust mfile) tag args
 
-handleTagFile :: T.TagFile -> T.Tag -> Args -> IO ()
-handleTagFile file tag args = do
-  when (optVerbose args || not (anySetters args)) $ parseInfo tag >>= print
+handleTagFile :: FilePath -> T.TagFile -> T.Tag -> Args -> IO ()
+handleTagFile path file tag args = do
+  when (optVerbose args || not (anySetters args)) $
+    prettyInfo path <$> parseInfo tag >>= putStrLn
   when (anySetters args) $ do
     modifyTag tag args
     T.save file
@@ -106,9 +107,10 @@ parseInfo tag = Info
   <*> T.track tag
   <*> T.year tag
 
-instance Show Info where
-  show (Info alb art cmt gen tle trk yr) = concat [
-      line "artist:  " art
+prettyInfo :: FilePath -> Info -> String
+prettyInfo path (Info alb art cmt gen tle trk yr) = concat [
+      line "path:    " path
+    , line "artist:  " art
     , line "album:   " alb
     , line "title:   " tle
     , line "track:   " $ show trk
