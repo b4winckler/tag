@@ -33,7 +33,7 @@ data Info = Info {
 main :: IO ()
 main = do
   opt <- O.execParser $ O.info (O.helper <*> parseArgs) $ O.fullDesc
-           <> O.header "tag v0.1.1 - Command line editing of audio file tags"
+           <> O.header "tag v0.2 - Command line editing of audio file tags"
   run opt
 
 
