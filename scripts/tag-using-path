@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Take file with name like
+#
+#   02 Track Title.flac
+#
+# and call
+#
+#   tag "02 Track Title.flac" --track 02 --title "Track Title"
+#
+
+# Example usage:
+#
+#   tag-using-path *.flac
+#
+
+for fn; do
+    RE="^([0-9]+)[ ]*(.*)[.]flac$"
+    [[ "$fn" =~ $RE ]] && NUM="${BASH_REMATCH[1]}" && TITLE="${BASH_REMATCH[2]}"
+
+    read -p "$fn  =>  track=$NUM title='$TITLE' [yn]? " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        tag "$fn" --track "$NUM" --title "$TITLE"
+    fi
+done
