@@ -64,6 +64,15 @@ large library):
     $ find . -exec tag {} + | grep 'artist:' | sed -e 's/artist://' | sort | uniq -c | sort -bnr
 
 
+## Scripts
+
+The [scripts](https://github.com/b4winckler/tag/tree/master/scripts) folder
+contains more examples on how to use `tag`.  For example,
+[tag-using-path](https://github.com/b4winckler/tag/tree/master/scripts/tag-using-path)
+can be used to set the track number and song title for all flac files in a
+folder based on file names.
+
+
 ## Known bugs
 
 It is not possible to:
