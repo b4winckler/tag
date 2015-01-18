@@ -36,6 +36,22 @@ The second operation of `tag` is to modify audio tags
 Note that arguments are subject to shell interpretation so be sure to put
 single quotes around arguments with spaces etc.
 
+If no file name arguments are specified then a list of tab-separated values
+(TSV) are read from stdin.  Each line is a record consisting of a path to an
+audio file as well as the tags that should be set on that file.  The exact
+format can be seen by adding the `--tsv` option when printing tags.  The
+combination of the `--tsv` flag and not specifying any file arguments enables
+`tag` to be used with an external filter.  For example
+
+    $ tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} { ... }' | tag
+
+Here `...` could be any valid awk code, e.g. it could look at the file path in
+order to set track number and song title.  Note that `tag` does not check for
+tab characters in audio tags or file paths.  The presence of tab characters in
+audio tags would cause the above example to silently fail.  In other words,
+`tag --tsv file | tag` will not modify the tags in `file` unless one or more of
+them contain tab characters.
+
 See `tag --help` for a list of supported options.
 
 
@@ -62,6 +78,11 @@ songs each artist has in decreasing order (this may take a while if you have a
 large library):
 
     $ find . -exec tag {} + | grep 'artist:' | sed -e 's/artist://' | sort | uniq -c | sort -bnr
+
+Remove ` (OST)` from the album title of all flac files in the current
+directory:
+
+    $ tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} {sub(" (OST)", "", $4); print}' | tag
 
 
 ## Scripts
