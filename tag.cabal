@@ -15,4 +15,7 @@ executable tag
   hs-source-dirs:   src
   build-depends:    base >= 4.3 && <5,
                     taglib >= 0.1,
-                    optparse-applicative >= 0.5
+                    optparse-applicative >= 0.5,
+                    cassava >= 0.4,
+                    vector >= 0.10,
+                    bytestring >= 0.10
