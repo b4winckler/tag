@@ -36,6 +36,11 @@ main = do
            <> O.header "tag v0.2 - Command line editing of audio file tags"
   run opt
 
+-- There appears to be no builtin way to parse an option which defaults to
+-- Nothing, so we need some custom code to deal with this.
+optionMaybe :: O.ReadM a -> O.Mod O.OptionFields (Maybe a) -> O.Parser (Maybe a)
+optionMaybe r x = O.option (fmap Just r) (O.value Nothing <> x)
+
 parseArgs :: O.Parser Args
 parseArgs = Args
   <$> parseStr 'a' "album"
@@ -46,19 +51,15 @@ parseArgs = Args
   <*> parseNum 'n' "track"
   <*> parseNum 'y' "year"
   <*> O.switch (O.long "verbose" <> O.help "Verbose output")
-  <*> O.some (O.argument O.str (O.metavar "FILE"))
+  <*> O.some (O.argument O.str (O.metavar "FILES"))
   where
-    -- To parse a (Just a) value is complicated by the fact that we have to
-    -- specify different readers for String and (Read a) values so we pass the
-    -- reader as the first parameter.
     parseStr = parse O.str "STR"
     parseNum = parse O.auto "NUM"
-    parse r meta short name = O.option (fmap Just r) (
-                                      O.value Nothing
-                                      <> O.long name
-                                      <> O.short short
-                                      <> O.metavar meta
-                                      <> O.help ("Set " ++ name) )
+    parse r meta short name = optionMaybe r (
+           O.long name
+        <> O.short short
+        <> O.metavar meta
+        <> O.help ("Set " ++ name) )
 
 run :: Args -> IO ()
 run args = forM_ (optPaths args) $ \fname -> do
