@@ -26,6 +26,8 @@ import Data.Char (ord)
 import Data.Csv
 import Data.Maybe (isJust, fromJust, maybe)
 import Data.Monoid ((<>))
+import Data.Version (showVersion)
+import Paths_tag (version)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
@@ -72,8 +74,11 @@ data TsvRecord = TsvRecord {
 main :: IO ()
 main = do
   opt <- O.execParser $ O.info (O.helper <*> parseArgs) $ O.fullDesc
-           <> O.header "tag v0.2 - Command line editing of audio file tags"
+           <> O.header hdrString
   run opt
+  where
+    hdrString = "tag v" ++ showVersion version
+        ++ " - Command line editing of audio file tags"
 
 -- There appears to be no builtin way to parse an option which defaults to
 -- Nothing, so we need some custom code to deal with this.
