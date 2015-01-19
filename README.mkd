@@ -85,22 +85,26 @@ See `tag --help` for a list of supported options.
     many songs each artist has in decreasing order (this may take a while if
     you have a large library):
 
-        find . -exec tag {} + | grep 'artist:' | sed -e 's/artist://' | sort | uniq -c | sort -bnr
+        find . -exec tag {} + | grep 'artist:' | \
+             sed -e 's/artist://' | sort | uniq -c | sort -bnr
 
 *   Remove ` (OST)` from the album title of all flac files in the current
     directory:
 
-        tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} {sub(" (OST)", "", $4); print}' | tag
+        tag --tsv *.flac | \
+             awk 'BEGIN{FS=OFS="\t"} {sub(" (OST)", "", $4); print}' | tag
 
 *   Find all flac files without a genre tag and log their names to the file
     `missing-genre.txt`:
 
-        find . -name '*.flac' -exec tag --tsv {} + | awk -F'\t' '$6==""{print $1}' > missing-genre.txt
+        find . -name '*.flac' -exec tag --tsv {} + | \
+            awk -F'\t' '$6==""{print $1}' > missing-genre.txt
 
 *   Print the names of directories which contain flac files without a genre
     tag:
 
-        find . -name '*.flac' -exec tag --tsv {} + | awk -F'\t' '$6==""{sub("/[^/]*$", "", $1); print $1}' | uniq
+        find . -name '*.flac' -exec tag --tsv {} + | \
+            awk -F'\t' '$6==""{sub("/[^/]*$", "", $1); print $1}' | uniq
 
 
 ## Scripts
