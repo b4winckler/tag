@@ -43,7 +43,7 @@ format can be seen by adding the `--tsv` option when printing tags.  The
 combination of the `--tsv` flag and not specifying any file arguments enables
 `tag` to be used with an external filter.  For example
 
-    $ tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} { ... }' | tag
+    tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} { ... }' | tag
 
 Here `...` could be any valid awk code, e.g. it could look at the file path in
 order to set track number and song title.  Note that `tag` does not check for
@@ -57,32 +57,50 @@ See `tag --help` for a list of supported options.
 
 ## Examples
 
-Set album name of all files in current folder (note that a file without a tag
-will be ignored):
+*   Set album name of all files in current folder (note that a file without a
+    tag will be ignored):
 
-    $ tag * --album Requiem
+        tag * --album Requiem
 
-A tag with spaces or other characters that will be interpreted by the shell
-need to be protected by single quotes.  If the tag contains a single quote,
-e.g. as in *Mozart's Requiem*,  then it needs to be escaped like this (assuming you are using the bash shell):
+    A tag with spaces or other characters that will be interpreted by the shell
+    need to be protected by single quotes, e.g.:
 
-    $ tag * --album 'Mozart'\''s Requiem'
+        tag * --album 'Mozart - Requiem'
 
-Recursively set genre of all songs in folder `Classical` (note that `tag` will
-ignore folders and any non-music files, such as cover art etc.):
+    If the tag contains a single quote then you can use double quotes:
 
-    $ find Classical -exec tag --genre Classical {} +
+        tag * --album "Mozart's Requiem"
 
-Recursively find artist for all songs under current folder, then print how many
-songs each artist has in decreasing order (this may take a while if you have a
-large library):
+    If a tag contains both double and single quotes then it needs to be escaped
+    like this (assuming you are using the bash shell):
 
-    $ find . -exec tag {} + | grep 'artist:' | sed -e 's/artist://' | sort | uniq -c | sort -bnr
+        tag * --album 'Mozart'\''s "Requiem"'
 
-Remove ` (OST)` from the album title of all flac files in the current
-directory:
+*   Recursively set genre of all songs in folder `Classical` (note that `tag`
+    will ignore folders and any non-music files, such as cover art etc.):
 
-    $ tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} {sub(" (OST)", "", $4); print}' | tag
+        find Classical -exec tag --genre Classical {} +
+
+*   Recursively find artist for all songs under current folder, then print how
+    many songs each artist has in decreasing order (this may take a while if
+    you have a large library):
+
+        find . -exec tag {} + | grep 'artist:' | sed -e 's/artist://' | sort | uniq -c | sort -bnr
+
+*   Remove ` (OST)` from the album title of all flac files in the current
+    directory:
+
+        tag --tsv *.flac | awk 'BEGIN{FS=OFS="\t"} {sub(" (OST)", "", $4); print}' | tag
+
+*   Find all flac files without a genre tag and log their names to the file
+    `missing-genre.txt`:
+
+        find . -name '*.flac' -exec tag --tsv {} + | awk -F'\t' '$6==""{print $1}' > missing-genre.txt
+
+*   Print the names of directories which contain flac files without a genre
+    tag:
+
+        find . -name '*.flac' -exec tag --tsv {} + | awk -F'\t' '$6==""{sub("/[^/]*$", "", $1); print $1}' | uniq
 
 
 ## Scripts
